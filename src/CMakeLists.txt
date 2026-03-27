@@ -6,7 +6,10 @@ endif()
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
-add_executable(${PROJECT_NAME} Game.cpp)
+add_executable(${PROJECT_NAME} Game.cpp
+        SpriteLoader.h
+        Sprite.cpp
+        Sprite.h)
 target_link_libraries(
         ${PROJECT_NAME} PRIVATE
         Magnum::Application
@@ -15,4 +18,15 @@ target_link_libraries(
         MagnumIntegration::ImGui
         Magnum::GL
 )
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
+        COMMENT "Deleting existing resources file"
+)
 
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/res
+        $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
+        COMMENT "Copying resources to build dir..."
+)
