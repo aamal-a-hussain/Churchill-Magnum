@@ -14,6 +14,49 @@
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
 
+class ShapeSprite {
+protected:
+    Magnum::Color3 m_meshColor;
+    Magnum::Vector2 m_position;
+    Magnum::Vector2 m_velocity;
+    Corrade::Containers::Optional<Magnum::GL::Mesh> m_mesh;
+
+public:
+    ShapeSprite(
+        const Magnum::Color3& meshColor,
+        const Magnum::Vector2& position
+    ) : m_meshColor(meshColor), m_position(position), m_velocity({1.0f, 0.5f}) {}
+    bool hasMesh() const { return (bool)m_mesh; }
+
+    Magnum::GL::Mesh& getMesh() { return *m_mesh; }
+    Magnum::Vector2 getTranslation() const { return m_position; }
+    float *colorData() { return m_meshColor.data(); }
+    Magnum::Color3 getColor() const { return m_meshColor; }
+    void step(float dt);
+};
+
+class CircleSprite : public ShapeSprite {
+    float m_radius;
+
+public:
+    CircleSprite(const Magnum::Vector2& position, const float radius, const Magnum::Color3& color, const int segments = 64) : ShapeSprite(color, position), m_radius(radius) {
+        m_mesh = Magnum::MeshTools::compile(Magnum::Primitives::circle2DSolid(segments));
+    }
+    Magnum::Vector2 getScale() const { return {m_radius, m_radius}; }
+
+    void step(const float dt) {
+        auto tmp_position = m_position + m_velocity * dt;
+        if (tmp_position.x() + m_radius > 1.0f || tmp_position.x() - m_radius < -1.0f) {
+            m_velocity = {-m_velocity.x(), m_velocity.y()};
+        }
+        if (tmp_position.y() + m_radius > 1.0f || tmp_position.y() - m_radius < -1.0f) {
+            m_velocity = {m_velocity.x(), -m_velocity.y()};
+        }
+        m_position += m_velocity * dt;
+        Corrade::Utility::Debug {} << m_position;
+    }
+};
+
 class GameEngine : public Magnum::Platform::Application {
 public:
     virtual ~GameEngine() = default;
@@ -43,22 +86,27 @@ private:
 
     void textInputEvent(TextInputEvent &event);
 
+    float aspectRatio() const { return (float)windowSize().x() / (float)windowSize().y(); }
+
     Magnum::ImGuiIntegration::Context m_imguiContext {Corrade::NoCreate};
-    Corrade::Containers::StaticArray<MAX_NUM_SHAPES, Corrade::Containers::Optional<Magnum::GL::Mesh> > m_meshes;
+    Corrade::Containers::StaticArray<MAX_NUM_SHAPES, Corrade::Containers::Optional<CircleSprite>> m_sprites;
     Magnum::Shaders::FlatGL2D m_shader;
     Magnum::Timeline m_timeline;
-    float m_xValue {};
-    Magnum::Color3 m_meshColor {Magnum::Color3::red()};
+    bool m_isPaused = true;
 };
 
 
 GameEngine::GameEngine(const Arguments &arguments) : Magnum::Platform::Application(arguments,
     Configuration{}
     .setTitle("Cwk 1")
-    .setSize({1000, 600})
-    .setWindowFlags(Configuration::WindowFlag::Resizable)
+    .setSize({800, 800}) // @TODO allow resizable
 ) {
-    m_meshes[0].emplace(Magnum::MeshTools::compile(Magnum::Primitives::circle2DSolid(64)));
+    m_sprites[0].emplace(CircleSprite(
+        {0.0f, 0.0f},
+        0.1f,
+        Magnum::Color3::red()
+       )
+    );
     m_timeline.start();
     m_imguiContext = Magnum::ImGuiIntegration::Context{
         Magnum::Vector2{windowSize()} / dpiScaling(), windowSize(), framebufferSize()
@@ -76,19 +124,21 @@ void GameEngine::drawEvent() {
     m_imguiContext.newFrame();
 
     {
-        ImGui::ColorEdit3("Circle Color", m_meshColor.data());
+        for (auto &sprite : m_sprites) {
+            if (sprite && sprite->hasMesh())
+                ImGui::ColorEdit3("Circle Color", sprite->colorData());
+        }
     }
 
-    for (size_t i = 0; i < MAX_NUM_SHAPES; ++i) {
-        if (m_meshes[i])
+    for (auto& sprite : m_sprites) {
+        if (sprite && sprite-> hasMesh())
             m_shader
-                    .setColor(m_meshColor)
+                    .setColor(sprite->getColor())
                     .setTransformationProjectionMatrix(
-                        Magnum::Matrix3::projection({5.0f, 3.0f})
-                        * Magnum::Matrix3::translation({m_xValue, 0})
-                        * Magnum::Matrix3::scaling(Magnum::Vector2{0.1f})
+                        Magnum::Matrix3::translation(sprite->getTranslation())
+                        * Magnum::Matrix3::scaling(sprite->getScale())
                     )
-                    .draw(*m_meshes[i]);
+                    .draw(sprite->getMesh());
     }
 
 
@@ -108,8 +158,11 @@ void GameEngine::drawEvent() {
 
 void GameEngine::tickEvent() {
     const float timeElapsed = m_timeline.currentFrameDuration();
-    m_xValue = Magnum::Math::sin(Magnum::Math::Rad<float>(0.5f * timeElapsed));
-
+    if (!m_isPaused) {
+        if (m_sprites[0])
+            m_sprites[0]->step(timeElapsed);
+    }
+    m_timeline.nextFrame();
     redraw();
 }
 
@@ -122,6 +175,9 @@ void GameEngine::viewportEvent(ViewportEvent& event) {
 
 void GameEngine::keyPressEvent(KeyEvent& event) {
     if(m_imguiContext.handleKeyPressEvent(event)) return;
+    if (event.key() == Key::Space) {
+        m_isPaused = !m_isPaused;
+    }
 }
 
 void GameEngine::keyReleaseEvent(KeyEvent& event) {
