@@ -14,10 +14,12 @@
 
 struct SpriteConfig {
     SpriteType type;
+    std::string name;
+    bool aliveOnStart;
     float r, g, b;
     float pos_x, pos_y;
-    float radius;
     float vel_x, vel_y;
+    float radius, width, height;
 };
 
 class SpriteLoader {
@@ -37,9 +39,20 @@ class SpriteLoader {
                     return Corrade::Containers::Pointer{new CircleSprite(
                             {cfg.pos_x, cfg.pos_y},
                             cfg.radius,
+                            cfg.name,
+                            cfg.aliveOnStart,
                             {cfg.r, cfg.g, cfg.b},
                             {cfg.vel_x, cfg.vel_y}
                         )};
+            case (Rectangle):
+                return Corrade::Containers::Pointer{new RectangleSprite(
+                        {cfg.pos_x, cfg.pos_y},
+                        cfg.width, cfg.height,
+                        cfg.name,
+                        cfg.aliveOnStart,
+                        {cfg.r, cfg.g, cfg.b},
+                        {cfg.vel_x, cfg.vel_y}
+                    )};
                 default:
                     throw std::runtime_error("Unknown sprite type");
             }
@@ -76,18 +89,38 @@ class SpriteLoader {
         std::string line;
 
         int type;
-        float r, g, b, pos_x, pos_y, radius, vel_x, vel_y;
+        SpriteType spriteType;
+        std::string name;
+        bool aliveOnStart;
+        float r, g, b, pos_x, pos_y, vel_x, vel_y;
         while (std::getline(ifs, line)) {
             if (line.empty() || line[0] == '#') continue;
-
-            if (std::stringstream ss(line); ss >> type && type == Circle) {
-                ss >> r >> g >> b >> pos_x >> pos_y >>  vel_x >> vel_y >> radius;
-                loader.m_sprites.emplace_back(
-                    SpriteConfig {static_cast<SpriteType>(type), r, g, b, pos_x, pos_y, radius, vel_x, vel_y}
-                );
+            std::stringstream ss(line);
+            if (ss >> type)
+            {
+                spriteType = static_cast<SpriteType>(type);
+                ss >> name >> aliveOnStart >> r >> g >> b >> pos_x >> pos_y >>  vel_x >> vel_y;
+                if (spriteType == Circle) {
+                    float radius;
+                    ss >> radius;
+                    loader.m_sprites.emplace_back(
+                        SpriteConfig {spriteType, name, aliveOnStart, r, g, b, pos_x, pos_y, vel_x, vel_y, radius, 0, 0}
+                    );
+                } else if (spriteType == Rectangle)
+                {
+                    float width, height;
+                    ss >> width >> height;
+                    loader.m_sprites.emplace_back(
+                        SpriteConfig {spriteType, name, aliveOnStart, r, g, b, pos_x, pos_y, vel_x, vel_y, 0, width, height}
+                    );
+                }
             }
         }
         return loader;
+    }
+
+    [[nodiscard]] size_t length() const {
+        return m_sprites.size();
     }
 
     auto begin() { return SpriteIterator(m_sprites.begin()); }
