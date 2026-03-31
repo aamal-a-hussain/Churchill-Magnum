@@ -179,7 +179,7 @@ void GameEngine::drawEvent() {
         m_shader
                 .setColor(sprite->getColor())
                 .setTransformationProjectionMatrix(
-                    * Magnum::Matrix3::translation(sprite->getTranslation())
+                    Magnum::Matrix3::translation(sprite->getTranslation())
                     * Magnum::Matrix3::scaling(sprite->getScale() )
                 )
                 .draw(sprite->getMesh());

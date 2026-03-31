@@ -21,21 +21,15 @@ target_link_libraries(
         Magnum::Shaders
         MagnumIntegration::ImGui
         Magnum::GL
-        MagnumPlugins::StbTrueTypeFont
         Magnum::Text
 )
-
+add_dependencies(${PROJECT_NAME} MagnumPlugins::StbTrueTypeFont)
 set(RES_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
 set(RES_BINARY_DIR "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res")
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove_directory
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
-        COMMENT "Deleting existing resources file"
-)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
         ${CMAKE_SOURCE_DIR}/res
         $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
         COMMENT "Copying resources to build dir..."
