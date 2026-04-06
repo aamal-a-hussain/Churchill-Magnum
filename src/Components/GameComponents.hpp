@@ -1,0 +1,94 @@
+#ifndef GAMECOMPONENTS_GAMECOMPONENTS_HPP_
+#define GAMECOMPONENTS_GAMECOMPONENTS_HPP_
+#include <cstddef>
+#include <tuple>
+#include <memory>
+#include "Magnum/GL/Mesh.h"
+#include "Magnum/Math/Color.h"
+#include "Magnum/Shaders/FlatGL.h"
+
+struct Component {
+    bool       exists = false;
+};
+
+struct CollisionCapsule : Component {
+    float      radius = 0.0f;
+};
+
+struct LifeSpan : Component {
+    size_t     lifespan = 0;
+    size_t     remaining= 0;
+};
+
+struct Input : Component {
+    int        up = 0;
+    int        down = 0;
+    int        right = 0;
+    int        left = 0;
+    int        shoot = 0;
+};
+
+struct Score : Component {
+    size_t     score = 0;
+};
+
+class Sprite : public Component {
+protected:
+    Magnum::Color3 m_meshColor {};
+    std::shared_ptr<Magnum::GL::Mesh> m_mesh;
+    std::shared_ptr<Magnum::Shaders::FlatGL2D> m_shader;
+
+public:
+    Sprite() : Component() {};
+
+    explicit Sprite(
+        const std::shared_ptr<Magnum::Shaders::FlatGL2D> &shader,
+        const Magnum::Color3& meshColor
+    ) : Component(), m_meshColor(meshColor), m_shader(shader) {}
+
+    [[nodiscard]] bool hasMesh() const { return static_cast<bool>(m_mesh); }
+
+    virtual ~Sprite() = default;
+
+    std::shared_ptr<Magnum::GL::Mesh> GetMeshData() { return m_mesh; }
+    std::shared_ptr<Magnum::Shaders::FlatGL2D> GetShader() { return m_shader; }
+    float *GetColorData() { return m_meshColor.data(); }
+    [[nodiscard]] Magnum::Color3 getColor() const { return m_meshColor; }
+
+};
+
+class Transform : public Component {
+    Magnum::Vector2 m_position {};
+    Magnum::Vector2 m_scale {};
+    Magnum::Vector2 m_velocity {};
+    float           m_rotation = 0.0f;
+
+public:
+    Transform() : Component() {};
+    Transform(
+        const Magnum::Vector2& position,
+        const Magnum::Vector2& scale,
+        const Magnum::Vector2& velocity,
+        const float rotation
+        ) :
+        Component(),
+        m_position(position),
+        m_scale(scale),
+        m_velocity(velocity),
+        m_rotation(rotation)
+    {};
+
+    Magnum::Vector2 GetPosition() const { return m_position; }
+    Magnum::Vector2 GetScale() const { return m_scale; }
+
+};
+
+typedef std::tuple<
+    Transform,
+    LifeSpan,
+    CollisionCapsule,
+    Input,
+    Score
+    > ComponentTuple;
+
+#endif

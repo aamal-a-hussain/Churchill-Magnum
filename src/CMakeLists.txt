@@ -11,9 +11,13 @@ endif()
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
 add_executable(${PROJECT_NAME} Game.cpp
-        SpriteLoader.hpp
-        Sprite.cpp
-        Sprite.h)
+        Components/Sprite.cpp
+        Components/Sprite.h
+        Components/Transform.cpp
+        Components/GameComponents.hpp
+        Entities/Entity.hpp
+        Entities/EntityManager.cpp
+        Entities/EntityManager.h)
 target_link_libraries(
         ${PROJECT_NAME} PRIVATE
         Magnum::Application
