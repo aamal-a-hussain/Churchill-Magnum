@@ -17,7 +17,10 @@ add_executable(${PROJECT_NAME} Game.cpp
         Components/GameComponents.hpp
         Entities/Entity.hpp
         Entities/EntityManager.cpp
-        Entities/EntityManager.h)
+        Entities/EntityManager.h
+        Game.h
+        GameSystems.cpp
+        Entities/EnemyFab.hpp)
 target_link_libraries(
         ${PROJECT_NAME} PRIVATE
         Magnum::Application

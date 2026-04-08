@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <tuple>
 #include <memory>
+
+#include "Magnum/Timeline.h"
 #include "Magnum/GL/Mesh.h"
 #include "Magnum/Math/Color.h"
 #include "Magnum/Shaders/FlatGL.h"
@@ -16,8 +18,11 @@ struct CollisionCapsule : Component {
 };
 
 struct LifeSpan : Component {
-    size_t     lifespan = 0;
-    size_t     remaining= 0;
+    float     lifespan  = 0;
+    float     startTime = 0;
+
+    LifeSpan() : Component() {}
+    explicit LifeSpan(const float lifespan, const float startTime) : Component(true), lifespan(lifespan), startTime(startTime) {}
 };
 
 struct Input : Component {
@@ -45,7 +50,7 @@ public:
     explicit Sprite(
         const std::shared_ptr<Magnum::Shaders::FlatGL2D> &shader,
         const Magnum::Color3& meshColor
-    ) : Component(), m_meshColor(meshColor), m_shader(shader) {}
+    ) : Component(true), m_meshColor(meshColor), m_shader(shader) {}
 
     [[nodiscard]] bool hasMesh() const { return static_cast<bool>(m_mesh); }
 
@@ -72,7 +77,7 @@ struct Transform :  Component {
         const Magnum::Vector2& velocity,
         const float rotation
         ) :
-        Component(),
+        Component(true),
         position(position),
         scale(scale),
         velocity(velocity),

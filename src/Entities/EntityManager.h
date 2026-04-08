@@ -11,6 +11,8 @@
 #include "Corrade/Containers/GrowableArray.h"
 #include <Corrade/Containers/Array.h>
 
+#include "EnemyFab.hpp"
+
 
 using EntityVector= Corrade::Containers::Array<std::shared_ptr<Entity>>;
 using EntityMap = std::map<EntityType, EntityVector>;
@@ -27,16 +29,41 @@ public:
         Corrade::Containers::arrayReserve(m_toAdd, num_reserved_entities);
 
         m_totalEntities = 0;
-    };
+    }
 
     std::shared_ptr<Entity> addEntity(const EntityType entityType) {
         std::shared_ptr<Entity> e_ptr(new Entity(entityType, m_totalEntities++));
-        Corrade::Containers::arrayAppend(m_entities, e_ptr);
-        Corrade::Containers::arrayAppend(m_entitiesById[entityType], e_ptr);
+        Corrade::Containers::arrayAppend(m_toAdd, e_ptr);
         return e_ptr;
     }
 
-    EntityVector& getEntity(const EntityType entityType)
+    void update()
+    {
+        for (auto& e : m_toAdd)
+        {
+            Corrade::Containers::arrayAppend(m_entities, e);
+            Corrade::Containers::arrayAppend(m_entitiesById[e->GetEntityType()], e);
+        }
+
+        for (size_t i = 0; i < m_entities.size(); ++i)
+        {
+            if (const auto& e = m_entities[i]; !e->IsAlive())
+                Corrade::Containers::arrayRemove(m_entities, i);
+        }
+
+        for (auto& [type, e_vec] : m_entitiesById)
+        {
+            for (size_t i = 0; i < e_vec.size(); ++i)
+            {
+                if (const auto& e = e_vec[i]; !e->IsAlive())
+                    Corrade::Containers::arrayRemove(m_entitiesById[type], i);
+            }
+        }
+
+        Corrade::Containers::arrayClear(m_toAdd);
+    }
+
+    EntityVector& getEntityById(const EntityType entityType)
     {
         return m_entitiesById[entityType];
     }
