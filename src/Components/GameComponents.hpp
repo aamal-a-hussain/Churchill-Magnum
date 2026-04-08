@@ -26,6 +26,7 @@ struct Input : Component {
     int        right = 0;
     int        left = 0;
     int        shoot = 0;
+    int        warp = 0;
 };
 
 struct Score : Component {
@@ -57,14 +58,14 @@ public:
 
 };
 
-class Transform : public Component {
-    Magnum::Vector2 m_position {};
-    Magnum::Vector2 m_scale {};
-    Magnum::Vector2 m_velocity {};
-    float           m_rotation = 0.0f;
+struct Transform :  Component {
+    Magnum::Vector2 position {};
+    Magnum::Vector2 scale {};
+    Magnum::Vector2 velocity {};
+    float           rotation = 0.0f;
 
-public:
-    Transform() : Component() {};
+    Transform() : Component() {}
+
     Transform(
         const Magnum::Vector2& position,
         const Magnum::Vector2& scale,
@@ -72,15 +73,11 @@ public:
         const float rotation
         ) :
         Component(),
-        m_position(position),
-        m_scale(scale),
-        m_velocity(velocity),
-        m_rotation(rotation)
-    {};
-
-    Magnum::Vector2 GetPosition() const { return m_position; }
-    Magnum::Vector2 GetScale() const { return m_scale; }
-
+        position(position),
+        scale(scale),
+        velocity(velocity),
+        rotation(rotation)
+    {}
 };
 
 typedef std::tuple<

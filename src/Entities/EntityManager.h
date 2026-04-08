@@ -4,7 +4,6 @@
 
 #ifndef CHURCHILLMAGNUM_ENTITYMANAGER_H
 #define CHURCHILLMAGNUM_ENTITYMANAGER_H
-#include <cassert>
 #include <map>
 #include <memory>
 
@@ -37,11 +36,16 @@ public:
         return e_ptr;
     }
 
-    void DrawEntities(const float windowSize, const float aspectRatio) {
-        if (windowSize < 0.0f)
+    EntityVector& getEntity(const EntityType entityType)
+    {
+        return m_entitiesById[entityType];
+    }
+
+    void DrawEntities(const Magnum::Vector2& windowDimensions) {
+        if (windowDimensions.x() < 0.0f)
             Corrade::Utility::Fatal {} << "Window size must be greater than zero.";
         for (const auto& entity : m_entities) {
-            entity->draw(windowSize, aspectRatio);
+            entity->draw(windowDimensions);
         }
 
     }

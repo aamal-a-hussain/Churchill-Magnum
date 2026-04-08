@@ -65,7 +65,7 @@ public:
     [[nodiscard]] bool IsAlive() const { return m_alive; }
     [[nodiscard]] EntityType GetEntityType() const { return m_entityType; }
     void Destroy() { m_alive = false; }
-    void draw(const float windowSize, const float aspectRatio) {
+    void draw(const Magnum::Vector2& windowDimensions) {
         if (!m_alive) return;
         const auto sprite = GetSprite();
         const auto transform = Get<Transform>();
@@ -73,9 +73,9 @@ public:
         shader
             ->setColor(sprite->getColor())
             .setTransformationProjectionMatrix(
-                Magnum::Matrix3::projection({windowSize * aspectRatio, windowSize})
-                * Magnum::Matrix3::translation(transform.GetPosition())
-                * Magnum::Matrix3::scaling(transform.GetScale())
+                Magnum::Matrix3::projection(windowDimensions)
+                * Magnum::Matrix3::translation(transform.position)
+                * Magnum::Matrix3::scaling(transform.scale)
             )
             .draw(*sprite->GetMeshData().get());
     }
