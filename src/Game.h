@@ -30,7 +30,8 @@ public:
     virtual ~GameEngine() = default;
     explicit GameEngine(const Arguments &arguments);
     void spawnPlayer();
-    void spawnEnemy(EnemyType enemyType);
+    void spawnEnemy(EnemyFab& enemyFab);
+    void clearEnemies();
 
     static float viewportAspect();
     Magnum::Vector2 windowDimensions();
@@ -73,6 +74,9 @@ private:
     PlayerControls m_playerControls;
     float m_lastSpawnTime = 0.0f;
     float m_spawnInterval = 1.0f;
+
+    EnemyFab m_runnerFab = EnemyFab::Runner();
+    EnemyFab m_heavyFab = EnemyFab::Heavy();
 };
 
 

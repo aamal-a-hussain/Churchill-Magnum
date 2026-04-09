@@ -11,7 +11,8 @@
 enum EnemyType
 {
     Runner,
-    Heavy
+    Heavy,
+    All
 };
 
 struct EnemyFab // @TODO: Instantiate one of each in memory so that ImGui can be used to play with parameters
@@ -22,7 +23,7 @@ struct EnemyFab // @TODO: Instantiate one of each in memory so that ImGui can be
     int num_segments;
     Magnum::Color3 color = Magnum::Color3::red();
 
-    EnemyFab() = default;
+    EnemyFab() = delete;
 
     static EnemyFab Runner()
     {

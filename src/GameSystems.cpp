@@ -25,31 +25,27 @@ void GameEngine::spawnPlayer()
     player->AddComponent<Input>();
 }
 
-void GameEngine::spawnEnemy(EnemyType enemyType)
+void GameEngine::spawnEnemy(EnemyFab& enemyFab)
 {
     const std::shared_ptr<Entity> enemy = m_entityManager.addEntity(Enemy);
-    EnemyFab fab;
-    switch (enemyType)
-    {
-    case Runner:
-        fab = EnemyFab::Runner();
-        break;
-    case Heavy:
-        fab = EnemyFab::Heavy();
-        break;
-    }
 
     Magnum::Vector2 velocity {0.1f, 2.0f};
     velocity /= velocity.length() + 1E-8f;
-    velocity *= fab.speed;
+    velocity *= enemyFab.speed;
     enemy->AddComponent<Transform>(
             Magnum::Vector2{0.0f, 0.0f},
-            Magnum::Vector2{fab.scale, fab.scale},
+            Magnum::Vector2{enemyFab.scale, enemyFab.scale},
             velocity,
             0.0f
         );
     enemy->AddComponent<LifeSpan>(15.0f, m_timeline.currentFrameTime());
-    enemy->AddSprite<CircleSprite>(m_shader, fab.radius, fab.color, fab.num_segments);
+    enemy->AddSprite<CircleSprite>(m_shader, enemyFab.radius, enemyFab.color, enemyFab.num_segments);
+}
+
+void GameEngine::clearEnemies()
+{
+    const auto& enemies = m_entityManager.getEntityById(Enemy);
+    for (auto& e : enemies) e->Destroy();
 }
 
 void GameEngine::sImGui()
@@ -69,6 +65,26 @@ void GameEngine::sImGui()
     {
         ImGui::SliderFloat("Movement Speed", &m_playerControls.movementSpeed, 1.0f, 10.0f);
         ImGui::SliderFloat("Warp Speed", &m_playerControls.warpSpeed, 5.0f, 20.0f);
+    }
+    if (ImGui::CollapsingHeader("Enemy Presets"))
+    {
+        if (ImGui::Button("Clear Enemies")) clearEnemies();
+
+        if (ImGui::CollapsingHeader("Runner"))
+        {
+            ImGui::ColorPicker3("Color", m_runnerFab.color.data());
+            ImGui::SliderFloat("Movement Speed", &m_runnerFab.speed, 1.0f, 10.0f);
+            ImGui::SliderFloat("Scale", &m_runnerFab.scale, 0.01f, 1.0f);
+            ImGui::SliderInt("NumSegments", &m_runnerFab.num_segments, 3, 64);
+        }
+
+        if (ImGui::CollapsingHeader("Heavy"))
+        {
+            ImGui::ColorPicker3("Color", m_heavyFab.color.data());
+            ImGui::SliderFloat("Movement Speed", &m_heavyFab.speed, 1.0f, 10.0f);
+            ImGui::SliderFloat("Scale", &m_heavyFab.scale, 0.01f, 1.0f);
+            ImGui::SliderInt("NumSegments", &m_heavyFab.num_segments, 3, 64);
+        }
     }
 
     m_imguiContext.updateApplicationCursor(*this);

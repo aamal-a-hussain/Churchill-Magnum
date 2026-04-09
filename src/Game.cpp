@@ -54,7 +54,7 @@ void GameEngine::tickEvent() {
     if (cTime - m_lastSpawnTime > m_spawnInterval)
     {
         m_lastSpawnTime = cTime;
-        spawnEnemy(Runner);
+        spawnEnemy(m_runnerFab);
     }
 
     for (const auto& e : m_entityManager.getEntityById(Enemy))
