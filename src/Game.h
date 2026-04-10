@@ -40,17 +40,24 @@ public:
 
 
 private:
+
+
+    void sSpawnEnemy();
+    void sImGui();
+    void sMovement();
+    void sHandleInput(const KeyEvent& event, int pressOrRelease);
+
+    void integratePlayerPosition(Transform& t);
+    void integratePosition(Transform& t);
+    static float rand();
+    std::shared_ptr<Entity> player();
+
+
     void drawEvent() override;
 
     void tickEvent() override;
 
     void viewportEvent(ViewportEvent &event) override;
-    void sImGui();
-    void integratePlayerPosition(Transform& t);
-    void integratePosition(Transform& t);
-    void sMovement();
-    std::shared_ptr<Entity> player();
-    void sHandleInput(const KeyEvent& event, int pressOrRelease);
 
     void keyPressEvent(KeyEvent &event) override;
 
@@ -67,6 +74,7 @@ private:
     void textInputEvent(TextInputEvent& event) override;
 
     EntityManager m_entityManager;
+
     std::shared_ptr<Magnum::Shaders::FlatGL2D> m_shader;
     Magnum::Timeline m_timeline;
     Magnum::ImGuiIntegration::Context m_imguiContext {Corrade::NoCreate};
@@ -77,6 +85,11 @@ private:
 
     EnemyFab m_runnerFab = EnemyFab::Runner();
     EnemyFab m_heavyFab = EnemyFab::Heavy();
+
+    bool m_paused = false;
+    bool m_movementActive = true;
+    bool m_renderingActive = true;
+    bool m_spawnActive = true;
 };
 
 

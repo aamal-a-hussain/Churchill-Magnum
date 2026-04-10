@@ -37,6 +37,10 @@ public:
         return e_ptr;
     }
 
+    [[nodiscard]] bool playerExists() const {
+        return m_entitiesById.contains(Player);
+    }
+
     void update()
     {
         for (auto& e : m_toAdd)

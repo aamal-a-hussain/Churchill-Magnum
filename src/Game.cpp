@@ -28,7 +28,6 @@ GameEngine::GameEngine(const Arguments &arguments) : Magnum::Platform::Applicati
 }
 
 
-
 inline float GameEngine::viewportAspect() {
     auto fbSize = Magnum::GL::defaultFramebuffer.viewport().size();
     return float(fbSize.x()) / float(fbSize.y());
@@ -42,27 +41,26 @@ inline Magnum::Vector2 GameEngine::windowDimensions()
 
 void GameEngine::drawEvent() {
     Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color);
-    m_entityManager.DrawEntities(windowDimensions());
+    if (m_renderingActive) m_entityManager.DrawEntities(windowDimensions());
     sImGui();
     swapBuffers();
 }
 
+
 void GameEngine::tickEvent() {
     const auto cTime = m_timeline.currentFrameTime();
-    m_entityManager.update();
-    sMovement();
-    if (cTime - m_lastSpawnTime > m_spawnInterval)
-    {
-        m_lastSpawnTime = cTime;
-        spawnEnemy(m_runnerFab);
-    }
+    if (!m_paused) {
+        m_entityManager.update();
+        if (m_movementActive) sMovement();
+        if (m_spawnActive) sSpawnEnemy();
 
-    for (const auto& e : m_entityManager.getEntityById(Enemy))
-    {
-        if (e->Has<LifeSpan>())
-            if (const auto& l = e->Get<LifeSpan>(); cTime - l.startTime >= l.lifespan) {
-                e->Destroy();
-            }
+        for (const auto& e : m_entityManager.getEntityById(Enemy))
+        {
+            if (e->Has<LifeSpan>())
+                if (const auto& l = e->Get<LifeSpan>(); cTime - l.startTime >= l.lifespan) {
+                    e->Destroy();
+                }
+        }
     }
     m_timeline.nextFrame();
     redraw();
@@ -76,7 +74,7 @@ void GameEngine::viewportEvent(ViewportEvent& event) {
 void GameEngine::keyPressEvent(KeyEvent& event) {
     if(m_imguiContext.handleKeyPressEvent(event)) return;
     if (event.key() == Key::Esc) {
-        exit(EXIT_SUCCESS);
+        m_paused = !m_paused;
     }
     sHandleInput(event, 1);
 }

@@ -2,18 +2,30 @@
 // Created by aamal on 09/04/2026.
 //
 
+#include <random>
 #include <Magnum/GL/Renderer.h>
 
 #include "Game.h"
+
+float GameEngine::rand() {
+    static std::random_device rnd;
+    static std::uniform_real_distribution distribution(0.0f, 1.0f);
+    return distribution(rnd);
+}
 
 std::shared_ptr<Entity> GameEngine::player()
 {
     return m_entityManager.getEntityById(Player).back();
 }
 
+
 void GameEngine::spawnPlayer()
 {
-    std::shared_ptr<Entity> player = m_entityManager.addEntity(Player);
+    if (m_entityManager.playerExists()) {
+        Corrade::Utility::Warning {} << "Player already exists!";
+        return;
+    }
+    const std::shared_ptr<Entity> player = m_entityManager.addEntity(Player);
     player->AddComponent<Transform>(
         Magnum::Vector2{0.0f, 0.0f},
         Magnum::Vector2{0.1f, 0.1f},
@@ -29,11 +41,11 @@ void GameEngine::spawnEnemy(EnemyFab& enemyFab)
 {
     const std::shared_ptr<Entity> enemy = m_entityManager.addEntity(Enemy);
 
-    Magnum::Vector2 velocity {0.1f, 2.0f};
+    Magnum::Vector2 velocity {rand() * 2 - 1, rand() * 2 - 1};
     velocity /= velocity.length() + 1E-8f;
     velocity *= enemyFab.speed;
     enemy->AddComponent<Transform>(
-            Magnum::Vector2{0.0f, 0.0f},
+            Magnum::Vector2{rand() * 1.5f - 1, rand() * 1.5f - 1},
             Magnum::Vector2{enemyFab.scale, enemyFab.scale},
             velocity,
             0.0f
@@ -41,6 +53,20 @@ void GameEngine::spawnEnemy(EnemyFab& enemyFab)
     enemy->AddComponent<LifeSpan>(15.0f, m_timeline.currentFrameTime());
     enemy->AddSprite<CircleSprite>(m_shader, enemyFab.radius, enemyFab.color, enemyFab.num_segments);
 }
+
+void GameEngine::sSpawnEnemy() {
+    const float cTime = m_timeline.currentFrameTime();
+    if (cTime - m_lastSpawnTime > m_spawnInterval)
+    {
+        m_lastSpawnTime = cTime;
+        if (rand() < 0.2f) {
+            spawnEnemy(m_heavyFab);
+        } else {
+            spawnEnemy(m_runnerFab);
+        }
+    }
+}
+
 
 void GameEngine::clearEnemies()
 {
@@ -57,34 +83,51 @@ void GameEngine::sImGui()
 
     m_imguiContext.newFrame();
 
-    if (ImGui::CollapsingHeader("Window Controls"))
-    {
-        ImGui::SliderFloat("Window Size", &m_windowProperties.windowSize, 1.0f, 20.0f);
-    }
-    if (ImGui::CollapsingHeader("Player Controls"))
-    {
-        ImGui::SliderFloat("Movement Speed", &m_playerControls.movementSpeed, 1.0f, 10.0f);
-        ImGui::SliderFloat("Warp Speed", &m_playerControls.warpSpeed, 5.0f, 20.0f);
-    }
-    if (ImGui::CollapsingHeader("Enemy Presets"))
-    {
-        if (ImGui::Button("Clear Enemies")) clearEnemies();
+    if (ImGui::Button(m_paused ? "Play" : "Pause")) m_paused = !m_paused;
+    ImGui::SameLine();
+    if (ImGui::Button("Exit to Desktop")) exit(EXIT_SUCCESS);
 
-        if (ImGui::CollapsingHeader("Runner"))
-        {
-            ImGui::ColorPicker3("Color", m_runnerFab.color.data());
-            ImGui::SliderFloat("Movement Speed", &m_runnerFab.speed, 1.0f, 10.0f);
-            ImGui::SliderFloat("Scale", &m_runnerFab.scale, 0.01f, 1.0f);
-            ImGui::SliderInt("NumSegments", &m_runnerFab.num_segments, 3, 64);
-        }
+    if (ImGui::BeginTabBar("Gui Tabs")) {
+        if (ImGui::BeginTabItem("Presets")) {
+            ImGui::SliderFloat("Window Size", &m_windowProperties.windowSize, 1.0f, 20.0f);
+            ImGui::SliderFloat("Movement Speed", &m_playerControls.movementSpeed, 1.0f, 10.0f);
+            ImGui::SliderFloat("Warp Speed", &m_playerControls.warpSpeed, 5.0f, 20.0f);
 
-        if (ImGui::CollapsingHeader("Heavy"))
-        {
-            ImGui::ColorPicker3("Color", m_heavyFab.color.data());
-            ImGui::SliderFloat("Movement Speed", &m_heavyFab.speed, 1.0f, 10.0f);
-            ImGui::SliderFloat("Scale", &m_heavyFab.scale, 0.01f, 1.0f);
-            ImGui::SliderInt("NumSegments", &m_heavyFab.num_segments, 3, 64);
+
+            if (ImGui::CollapsingHeader("Enemies"))
+            {
+                if (ImGui::Button("Clear Enemies")) clearEnemies();
+                ImGui::SameLine();
+                if (ImGui::Button("Spawn Runner")) spawnEnemy(m_runnerFab);
+                ImGui::SameLine();
+                if (ImGui::Button("Spawn Heavy")) spawnEnemy(m_heavyFab);
+
+                if (ImGui::CollapsingHeader("Runner Settings"))
+                {
+                    ImGui::SliderFloat("Movement Speed", &m_runnerFab.speed, 1.0f, 10.0f);
+                    ImGui::SliderFloat("Scale", &m_runnerFab.scale, 0.01f, 1.0f);
+                    ImGui::SliderInt("NumSegments", &m_runnerFab.num_segments, 3, 64);
+                    ImGui::ColorPicker3("Color", m_runnerFab.color.data());
+                }
+
+                if (ImGui::CollapsingHeader("Heavy Settings"))
+                {
+                    ImGui::SliderFloat("Movement Speed", &m_heavyFab.speed, 1.0f, 10.0f);
+                    ImGui::SliderFloat("Scale", &m_heavyFab.scale, 0.01f, 1.0f);
+                    ImGui::SliderInt("NumSegments", &m_heavyFab.num_segments, 3, 64);
+                    ImGui::ColorPicker3("Color", m_heavyFab.color.data());
+                }
+            }
+            ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Systems")) {
+            ImGui::Checkbox("Movement", &m_movementActive);
+            ImGui::Checkbox("Rendering", &m_renderingActive);
+            ImGui::Checkbox("Spawning", &m_spawnActive);
+
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
     }
 
     m_imguiContext.updateApplicationCursor(*this);

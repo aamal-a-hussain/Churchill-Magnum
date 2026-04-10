@@ -1,0 +1,23 @@
+Gui elements
+- Enable systems
+    [] Movement
+    [] Bullet Lifespan
+    [] Collisions
+    [] Spawning
+        Manual spawn
+    [] Rendering
+    [x] Pause
+    [x] Exit
+
+- View entities
+
+- FPS monitor
+
+Gameplay elements:
+1. Bullets & shooting
+2. Score
+3. Health
+4. Enemies move towards player
+5. Enemies attack player
+6. Collision system with bullets
+7. Small + lifetime
