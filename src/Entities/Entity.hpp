@@ -7,7 +7,6 @@
 
 #include "../GameComponents.hpp"
 #include "Magnum/Math/Matrix3.h"
-#include "Magnum/Vk/Shader.h"
 
 enum class EntityType
 {
@@ -96,7 +95,7 @@ public:
                     * Magnum::Matrix3::translation(transform.position)
                     * Magnum::Matrix3::scaling(transform.scale)
                 )
-                .draw(*sprite->GetMeshData().get());
+                .draw(*sprite->GetMeshData());
 
             shader->setColor(Magnum::Color3::red());
             shader->bindTexture(*texture);
@@ -105,7 +104,7 @@ public:
                     * Magnum::Matrix3::translation(transform.position)
                     * Magnum::Matrix3::scaling(transform.scale * 1.5)
                 )
-                .draw(*sprite->GetMeshData().get());
+                .draw(*sprite->GetMeshData());
             return;
         }
 
@@ -114,7 +113,7 @@ public:
                 * Magnum::Matrix3::translation(transform.position)
                 * Magnum::Matrix3::scaling(transform.scale)
             )
-            .draw(*sprite->GetMeshData().get());
+            .draw(*sprite->GetMeshData());
     }
 
     friend class EntityManager;

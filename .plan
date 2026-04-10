@@ -24,3 +24,14 @@ Gameplay elements:
 [x] Health
 [x] Small + lifetime
 [x] Fade with lifetime
+
+
+[] Victory & loss conditions (score >= 200 || health == 0).
+    Use a flag to check so that we don't accidentally overrun if hit twice in a frame.
+
+
+Performance:
+[] Once numSegments have been decided, create singleton instances of the mesh
+    for each entity type and share the reference.
+[] Use flags for input & game state
+[] Cache viewport state & window dims once per tick

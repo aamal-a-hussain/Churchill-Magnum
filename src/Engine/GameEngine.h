@@ -20,6 +20,7 @@
 #include "Corrade/PluginManager/Manager.h"
 #include <Magnum/Shaders/VectorGL.h>
 
+#include "Magnum/Text/AbstractShaper.h"
 
 
 class GameEngine : public Magnum::Platform::Application
@@ -98,17 +99,21 @@ private:
     void textInputEvent(TextInputEvent& event) override;
 
     EntityManager m_entityManager;
-    int8_t m_score = 0;
-    int8_t m_health = 100;
+    std::weak_ptr<Entity> m_playerRef;
+
+    uint8_t m_score = 0;
+    uint8_t m_health = 100;
 
     std::shared_ptr<Magnum::Shaders::FlatGL2D> m_texturedShader;
     std::shared_ptr<Magnum::Shaders::FlatGL2D> m_flatShader;
     Magnum::Shaders::VectorGL2D m_text_shader;
     Magnum::PluginManager::Manager<Magnum::Text::AbstractFont> m_manager;
     Corrade::Containers::Pointer<Magnum::Text::AbstractFont> m_font;
+    Corrade::Containers::Pointer<Magnum::Text::AbstractShaper> m_fontShaper;
     Magnum::Text::GlyphCacheGL m_cache{Magnum::PixelFormat::R8Unorm, {512, 512}};
     Magnum::Text::RendererGL m_score_renderer {m_cache};
     Magnum::Text::RendererGL m_health_renderer {m_cache};
+    float m_fontSize;
 
     WindowProperties m_windowProperties;
     PlayerControls m_playerControls;

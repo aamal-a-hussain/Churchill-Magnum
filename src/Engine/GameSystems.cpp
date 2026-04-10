@@ -25,7 +25,9 @@ float GameEngine::rand()
 
 std::shared_ptr<Entity> GameEngine::player()
 {
-    return m_entityManager.GetEntityById(EntityType::Player).back();
+    if (const auto player = m_playerRef.lock(); player && player->IsAlive())
+        return player;
+    Corrade::Utility::Fatal{} << "Player does not exist!";
 }
 
 
@@ -65,6 +67,8 @@ void GameEngine::spawnPlayer()
     // @TODO: Create a player shader so that we don't need to do two draw calls for it, and can do more interesting things
     player->AddSprite(m_texturedShader, Magnum::Color3::green(), std::move(texture), 8);
     player->AddComponent<Input>();
+
+    m_playerRef = player;
 }
 
 void GameEngine::spawnEnemy(EnemyFab& enemyFab)
@@ -140,25 +144,35 @@ void GameEngine::sEnemySpawner()
 
 void GameEngine::sCollision()
 {
-    const auto& pTransform = player()->Get<Transform>();
+    static const auto squaredDistanceCheck = [](const Magnum::Vector2& v, const float minDist) {
+        return v.x() * v.x() + v.y() * v.y() < minDist * minDist;
+    };
 
-    for (const auto& e : m_entityManager.GetEntityById(EntityType::Enemy))
+    const auto& pTransform = player()->Get<Transform>();
+    const auto& enemies = m_entityManager.GetEntityById(EntityType::Enemy);
+    const auto& bullets = m_entityManager.GetEntityById(EntityType::Bullet);
+
+    for (const auto& e : enemies)
     {
         const auto &eTransform = e->Get<Transform>();
-        for (const auto& b : m_entityManager.GetEntityById(EntityType::Bullet)) {
+        bool eCollided = false;
+        for (const auto& b : bullets) {
+            if (!e->IsAlive()) break;
+            if (!b->IsAlive()) continue;
             const auto& bTransform = b->Get<Transform>();
-            bool collided = (bTransform.position - eTransform.position).length()
-                    < (eTransform.scale.x() + bTransform.scale.x()) / 2 + m_collisionCapsuleScale;
-            if (collided)
+            eCollided = squaredDistanceCheck(bTransform.position - eTransform.position, (eTransform.scale.x() + bTransform.scale.x()) / 2 + m_collisionCapsuleScale);
+            if (eCollided)
             {
+                b->Destroy();
                 e->Destroy();
                 spawnSmall(e);
                 incrementScore();
             }
         }
-        bool collided = (pTransform.position - eTransform.position).length()
-                    < (eTransform.scale.x() + pTransform.scale.x()) / 2 + m_collisionCapsuleScale;
-        if (collided)
+        if (eCollided) continue;
+
+        eCollided = squaredDistanceCheck(pTransform.position - eTransform.position, (eTransform.scale.x() + pTransform.scale.x()) / 2 + m_collisionCapsuleScale);
+        if (eCollided)
         {
             e->Destroy();
             spawnSmall(e);
@@ -170,8 +184,8 @@ void GameEngine::sCollision()
 
 void GameEngine::clearEntity(EntityType type)
 {
-    const auto& enemies = m_entityManager.GetEntityById(type);
-    for (auto& e : enemies) e->Destroy();
+    const auto& entities = m_entityManager.GetEntityById(type);
+    for (auto& e : entities) e->Destroy();
 }
 
 
@@ -212,7 +226,8 @@ void GameEngine::integratePosition(Transform& t)
 
 void GameEngine::sMovement()
 {
-    for (const auto& e : m_entityManager.GetEntities())
+    const auto& entities = m_entityManager.GetEntities();
+    for (const auto& e : entities)
     {
         if (e->GetEntityType() == EntityType::Player) continue;
         integratePosition(e->Get<Transform>());
@@ -249,19 +264,20 @@ void GameEngine::sMovementInput(const KeyEvent& event, int pressOrRelease)
 
 void GameEngine::sShoot()
 {
+    const auto& screenToViewport = [this](Magnum::Vector2i& pos)
+    {
+        float posx = (float)pos.x(),
+        posy = (float)pos.y(),
+        wSizex = (float)windowSize().x(),
+        wSizey = (float) windowSize().y();
+
+        const Magnum::Vector2 normalized = {posx / wSizex * 2.0f - 1.0f, (wSizey - posy) / wSizey * 2.0f - 1.0f};
+        return normalized * windowDimensions() / 2.0f;
+    };
+
     if (!player()->Get<Input>().shoot) return;
     if (const auto cTime = m_timeline.currentFrameTime(); cTime - m_lastShotTime > m_bulletFab.shotInterval)
     {
-        static const auto& screenToViewport = [this](Magnum::Vector2i& pos)
-        {
-            float posx = (float)pos.x(),
-            posy = (float)pos.y(),
-            wSizex = (float)windowSize().x(),
-            wSizey = (float) windowSize().y();
-
-            const Magnum::Vector2 normalized = {posx / wSizex * 2.0f - 1.0f, (wSizey - posy) / wSizey * 2.0f - 1.0f};
-            return normalized * windowDimensions() / 2.0f;
-        };
         const auto& pointerLoc = screenToViewport(m_pointerLoc);
         const auto& pos = player()->Get<Transform>().position;
         const auto& direction = pointerLoc - pos;
@@ -279,13 +295,13 @@ void GameEngine::sShootInput(const int pressOrRelease)
 void GameEngine::incrementScore()
 {
     m_score_renderer.clear();
-    m_score_renderer.render(*m_font->createShaper(), m_font->size(), std::format("Score {}", m_score++));
+    m_score_renderer.render(*m_fontShaper, m_fontSize, std::format("Score {}", m_score++));
 }
 
 void GameEngine::decrementHealth()
 {
     m_health_renderer.clear();
-    m_health_renderer.render(*m_font->createShaper(), m_font->size(), std::format("Health {}", m_health--));
+    m_health_renderer.render(*m_fontShaper, m_fontSize, std::format("Health {}", m_health--));
 }
 
 void GameEngine::sLifespan()
@@ -300,7 +316,7 @@ void GameEngine::sLifespan()
         if (e->GetEntityType() == EntityType::Small)
         {
             e->SetAlpha(1.0f - expf(-remaining));
-        } else if (e->GetEntityType() == EntityType::Small)
+        } else if (e->GetEntityType() == EntityType::Bullet)
         {
             e->SetAlpha(remaining / l.lifespan);
         }

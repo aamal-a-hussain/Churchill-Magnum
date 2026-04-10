@@ -37,6 +37,3 @@ target_link_libraries(
 )
 add_dependencies(${PROJECT_NAME} Magnum::AnyImageImporter
         MagnumPlugins::StbImageImporter MagnumPlugins::StbTrueTypeFont)
-set(RES_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
-set(RES_BINARY_DIR "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res")
-

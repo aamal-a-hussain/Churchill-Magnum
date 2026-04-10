@@ -46,8 +46,8 @@ struct Score : Component {
 class Sprite : public Component {
 protected:
     Magnum::Color3 m_meshColor {};
-    std::shared_ptr<Magnum::GL::Texture2D> m_meshTexture;
-    std::shared_ptr<Magnum::GL::Mesh> m_mesh;
+    std::unique_ptr<Magnum::GL::Texture2D> m_meshTexture;
+    std::unique_ptr<Magnum::GL::Mesh> m_mesh;
     std::shared_ptr<Magnum::Shaders::FlatGL2D> m_shader;
 
 public:
@@ -60,7 +60,7 @@ public:
         const int segments = 64
     ) : Component(true), m_meshColor(meshColor), m_shader(shader), numSegments(segments)
     {
-        m_mesh = std::make_shared<Magnum::GL::Mesh>(
+        m_mesh = std::make_unique<Magnum::GL::Mesh>(
             Magnum::MeshTools::compile(
                 Magnum::Primitives::circle2DSolid(
                     segments,
@@ -77,7 +77,7 @@ public:
         const int segments = 64
     ) : Component(true), m_meshColor(meshColor), m_shader(shader)
     {
-        m_mesh = std::make_shared<Magnum::GL::Mesh>(
+        m_mesh = std::make_unique<Magnum::GL::Mesh>(
             Magnum::MeshTools::compile(
                 Magnum::Primitives::circle2DSolid(
                     segments,
@@ -85,16 +85,16 @@ public:
                 )
             )
         );
-        m_meshTexture = std::make_shared<Magnum::GL::Texture2D>(std::move(meshTexture));
+        m_meshTexture = std::make_unique<Magnum::GL::Texture2D>(std::move(meshTexture));
     }
 
     [[nodiscard]] bool hasMesh() const { return static_cast<bool>(m_mesh); }
     virtual ~Sprite() = default;
-    std::shared_ptr<Magnum::GL::Mesh> GetMeshData() { return m_mesh; }
     std::shared_ptr<Magnum::Shaders::FlatGL2D> GetShader() { return m_shader; }
+    Magnum::GL::Mesh* GetMeshData() { return m_mesh.get(); }
     float *GetColorData() { return m_meshColor.data(); }
     [[nodiscard]] Magnum::Color3 GetColor() const { return m_meshColor; }
-    [[nodiscard]] std::shared_ptr<Magnum::GL::Texture2D> GetTexture() { return m_meshTexture; }
+    [[nodiscard]] Magnum::GL::Texture2D* GetTexture() { return m_meshTexture.get(); }
 
 };
 

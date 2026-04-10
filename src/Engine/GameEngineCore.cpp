@@ -26,11 +26,14 @@ GameEngine::GameEngine(const Arguments &arguments) : Magnum::Platform::Applicati
                         "abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
         Corrade::Utility::Fatal {} << "Glyph cache fill failed";
 
+    m_fontShaper = m_font->createShaper();
+    m_fontSize = m_font->size();
+
     m_score_renderer.reserve(100, (Magnum::UnsignedInt)Magnum::GL::BufferUsage::DynamicDraw);
-    m_score_renderer.render(*m_font -> createShaper(), m_font->size(), "Score: 0");
+    m_score_renderer.render(*m_fontShaper, m_fontSize, "Score: 0");
 
     m_health_renderer.reserve(100, (Magnum::UnsignedInt)Magnum::GL::BufferUsage::DynamicDraw);
-    m_health_renderer.render(*m_font -> createShaper(), m_font->size(), "Health: 100");
+    m_health_renderer.render(*m_fontShaper, m_fontSize, "Health: 100");
 
     spawnPlayer();
 
