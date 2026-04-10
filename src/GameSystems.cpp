@@ -5,9 +5,18 @@
 #include <random>
 #include <Magnum/GL/Renderer.h>
 
+#include <Corrade/PluginManager/Manager.h>
+#include <Corrade/Utility/Resource.h>
+#include <MagnumPlugins/AnyImageImporter/AnyImageImporter.h>
+#include <Magnum/Trade/ImageData.h>
 #include "Game.h"
+#include <Magnum/GL/Texture.h>
+#include <Magnum/GL/TextureFormat.h>
+#include <Magnum/ImageView.h>
 
-float GameEngine::rand() {
+
+float GameEngine::rand()
+{
     static std::random_device rnd;
     static std::uniform_real_distribution distribution(0.0f, 1.0f);
     return distribution(rnd);
@@ -15,53 +24,77 @@ float GameEngine::rand() {
 
 std::shared_ptr<Entity> GameEngine::player()
 {
-    return m_entityManager.getEntityById(Player).back();
+    return m_entityManager.getEntityById(EntityType::Player).back();
 }
 
 
 void GameEngine::spawnPlayer()
 {
-    if (m_entityManager.playerExists()) {
-        Corrade::Utility::Warning {} << "Player already exists!";
+    if (m_entityManager.playerExists())
+    {
+        Corrade::Utility::Warning{} << "Player already exists!";
         return;
     }
-    const std::shared_ptr<Entity> player = m_entityManager.addEntity(Player);
+    const std::shared_ptr<Entity> player = m_entityManager.addEntity(EntityType::Player);
     player->AddComponent<Transform>(
         Magnum::Vector2{0.0f, 0.0f},
         Magnum::Vector2{0.1f, 0.1f},
         Magnum::Vector2{0.0f, 0.0f},
         0.0f
-        );
+    );
 
-    player->AddSprite<CircleSprite>(m_shader, 0.1f, Magnum::Color3::green(), 8);
+
+    Corrade::PluginManager::Manager<Magnum::Trade::AbstractImporter> manager;
+    Corrade::Containers::Pointer<Magnum::Trade::AbstractImporter> importer =
+        manager.loadAndInstantiate("AnyImageImporter");
+
+    const Corrade::Utility::Resource rs{"player-data"};
+    if (!importer || !importer->openData(rs.getRaw("player_direction.png")))
+        std::exit(1);
+
+    Corrade::Containers::Optional<Magnum::Trade::ImageData2D> image = importer->image2D(0);
+    CORRADE_INTERNAL_ASSERT(image);
+    Magnum::GL::Texture2D texture;
+    texture.setWrapping(Magnum::GL::SamplerWrapping::ClampToEdge)
+           .setMagnificationFilter(Magnum::GL::SamplerFilter::Linear)
+           .setMinificationFilter(Magnum::GL::SamplerFilter::Linear)
+           .setStorage(1, Magnum::GL::textureFormat(image->format()), image->size())
+           .setSubImage(0, {}, *image);
+
+    // @TODO: Create a player shader so that we don't need to do two draw calls for it, and can do more interesting things
+    player->AddSprite<Sprite>(m_texturedShader, Magnum::Color3::green(), std::move(texture), 8);
     player->AddComponent<Input>();
 }
 
 void GameEngine::spawnEnemy(EnemyFab& enemyFab)
 {
-    const std::shared_ptr<Entity> enemy = m_entityManager.addEntity(Enemy);
+    const std::shared_ptr<Entity> enemy = m_entityManager.addEntity(EntityType::Enemy);
 
-    Magnum::Vector2 velocity {rand() * 2 - 1, rand() * 2 - 1};
+    Magnum::Vector2 velocity{rand() * 2 - 1, rand() * 2 - 1};
     velocity /= velocity.length() + 1E-8f;
     velocity *= enemyFab.speed;
     enemy->AddComponent<Transform>(
-            Magnum::Vector2{rand() * 1.5f - 1, rand() * 1.5f - 1},
-            Magnum::Vector2{enemyFab.scale, enemyFab.scale},
-            velocity,
-            0.0f
-        );
+        Magnum::Vector2{rand() * 1.5f - 1, rand() * 1.5f - 1},
+        Magnum::Vector2{enemyFab.scale, enemyFab.scale},
+        velocity,
+        0.0f
+    );
     enemy->AddComponent<LifeSpan>(15.0f, m_timeline.currentFrameTime());
-    enemy->AddSprite<CircleSprite>(m_shader, enemyFab.radius, enemyFab.color, enemyFab.num_segments);
+    enemy->AddSprite<Sprite>(m_flatShader, enemyFab.color, enemyFab.num_segments);
 }
 
-void GameEngine::sSpawnEnemy() {
+void GameEngine::sSpawnEnemy()
+{
     const float cTime = m_timeline.currentFrameTime();
     if (cTime - m_lastSpawnTime > m_spawnInterval)
     {
         m_lastSpawnTime = cTime;
-        if (rand() < 0.2f) {
+        if (rand() < 0.2f)
+        {
             spawnEnemy(m_heavyFab);
-        } else {
+        }
+        else
+        {
             spawnEnemy(m_runnerFab);
         }
     }
@@ -70,7 +103,7 @@ void GameEngine::sSpawnEnemy() {
 
 void GameEngine::clearEnemies()
 {
-    const auto& enemies = m_entityManager.getEntityById(Enemy);
+    const auto& enemies = m_entityManager.getEntityById(EntityType::Enemy);
     for (auto& e : enemies) e->Destroy();
 }
 
@@ -87,8 +120,10 @@ void GameEngine::sImGui()
     ImGui::SameLine();
     if (ImGui::Button("Exit to Desktop")) exit(EXIT_SUCCESS);
 
-    if (ImGui::BeginTabBar("Gui Tabs")) {
-        if (ImGui::BeginTabItem("Presets")) {
+    if (ImGui::BeginTabBar("Gui Tabs"))
+    {
+        if (ImGui::BeginTabItem("Presets"))
+        {
             ImGui::SliderFloat("Window Size", &m_windowProperties.windowSize, 1.0f, 20.0f);
             ImGui::SliderFloat("Movement Speed", &m_playerControls.movementSpeed, 1.0f, 10.0f);
             ImGui::SliderFloat("Warp Speed", &m_playerControls.warpSpeed, 5.0f, 20.0f);
@@ -120,7 +155,8 @@ void GameEngine::sImGui()
             }
             ImGui::EndTabItem();
         }
-        if (ImGui::BeginTabItem("Systems")) {
+        if (ImGui::BeginTabItem("Systems"))
+        {
             ImGui::Checkbox("Movement", &m_movementActive);
             ImGui::Checkbox("Rendering", &m_renderingActive);
             ImGui::Checkbox("Spawning", &m_spawnActive);
@@ -139,13 +175,15 @@ void GameEngine::sImGui()
 void GameEngine::integratePlayerPosition(Transform& t)
 {
     const float dt = m_timeline.currentFrameDuration();
-    Magnum::Vector2 newPosition {t.position.x(), t.position.y()};
+    Magnum::Vector2 newPosition{t.position.x(), t.position.y()};
 
     newPosition.x() += t.velocity.x() * dt;
     newPosition.y() += t.velocity.y() * dt;
 
-    if (newPosition.x() - t.scale.x() / 2 < -windowDimensions().x() / 2 || newPosition.x() + t.scale.x() / 2 > windowDimensions().x() / 2) newPosition.x() = t.position.x();
-    if (newPosition.y() - t.scale.y() / 2 < -windowDimensions().y() / 2 || newPosition.y() + t.scale.y() / 2 > windowDimensions().y() / 2) newPosition.y() = t.position.y();
+    if (newPosition.x() - t.scale.x() / 2 < -windowDimensions().x() / 2 || newPosition.x() + t.scale.x() / 2 >
+        windowDimensions().x() / 2) newPosition.x() = t.position.x();
+    if (newPosition.y() - t.scale.y() / 2 < -windowDimensions().y() / 2 || newPosition.y() + t.scale.y() / 2 >
+        windowDimensions().y() / 2) newPosition.y() = t.position.y();
 
     t.position = newPosition;
 }
@@ -154,24 +192,28 @@ void GameEngine::integratePosition(Transform& t)
 {
     const float dt = m_timeline.currentFrameDuration();
     auto tmp_position = t.position + t.velocity * dt;
-    if (tmp_position.x() - t.scale.x() / 2 < -windowDimensions().x() / 2 || tmp_position.x() + t.scale.x() / 2 > windowDimensions().x() / 2) {
+    if (tmp_position.x() - t.scale.x() / 2 < -windowDimensions().x() / 2 || tmp_position.x() + t.scale.x() / 2 >
+        windowDimensions().x() / 2)
+    {
         t.velocity = {-t.velocity.x(), t.velocity.y()};
     }
-    if (tmp_position.y() - t.scale.y() / 2 < -windowDimensions().y() / 2 || tmp_position.y() + t.scale.y() / 2 > windowDimensions().y() / 2) {
+    if (tmp_position.y() - t.scale.y() / 2 < -windowDimensions().y() / 2 || tmp_position.y() + t.scale.y() / 2 >
+        windowDimensions().y() / 2)
+    {
         t.velocity = {t.velocity.x(), -t.velocity.y()};
     }
     t.position += t.velocity * dt;
 }
+
 void GameEngine::sMovement()
 {
-
-    for (const auto& e : m_entityManager.getEntityById(Enemy))
+    for (const auto& e : m_entityManager.getEntityById(EntityType::Enemy))
         integratePosition(e->Get<Transform>());
 
     auto& t = player()->Get<Transform>();
     auto& i = player()->Get<Input>();
 
-    Magnum::Vector2 newVelocity {};
+    Magnum::Vector2 newVelocity{};
 
     if (i.up) newVelocity.y() += 1.0f;
     if (i.down) newVelocity.y() -= 1.0f;
@@ -187,7 +229,7 @@ void GameEngine::sMovement()
     integratePlayerPosition(t);
 }
 
-void GameEngine::sHandleInput(const KeyEvent &event, int pressOrRelease)
+void GameEngine::sHandleInput(const KeyEvent& event, int pressOrRelease)
 {
     auto& i = player()->Get<Input>();
     if (event.key() == Key::W) i.up = pressOrRelease;

@@ -1,28 +1,33 @@
-find_package(Magnum REQUIRED GL Sdl2Application)
+find_package(Corrade REQUIRED Main Utility)
+find_package(Magnum REQUIRED GL Trade Sdl2Application)
 
 if(NOT TARGET MagnumIntegration::ImGui)
         find_package(MagnumIntegration REQUIRED ImGui)
 endif()
 
-if(NOT TARGET MagnumPlugins::StbTrueTypeFont)
-        find_package(MagnumPlugins REQUIRED StbTrueTypeFont)
+if(NOT TARGET MagnumPlugins::StbImageImporter)
+        find_package(MagnumPlugins REQUIRED StbImageImporter)
 endif()
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
+corrade_add_resource(Game_RESOURCES ${PROJECT_SOURCE_DIR}/resources.conf)
+
+
 add_executable(${PROJECT_NAME} Game.cpp
-        Components/Sprite.cpp
-        Components/Sprite.h
-        Components/Transform.cpp
         Components/GameComponents.hpp
         Entities/Entity.hpp
-        Entities/EntityManager.cpp
-        Entities/EntityManager.h
+        Entities/EntityManager.hpp
         Game.h
         GameSystems.cpp
-        Entities/EnemyFab.hpp)
+        Entities/EnemyFab.hpp
+        ${Game_RESOURCES}
+)
 target_link_libraries(
         ${PROJECT_NAME} PRIVATE
+        Corrade::Main
+        Corrade::Utility
+        Magnum::Trade
         Magnum::Application
         Magnum::Primitives
         Magnum::Shaders
@@ -30,14 +35,8 @@ target_link_libraries(
         Magnum::GL
         Magnum::Text
 )
-add_dependencies(${PROJECT_NAME} MagnumPlugins::StbTrueTypeFont)
+add_dependencies(${PROJECT_NAME} Magnum::AnyImageImporter
+        MagnumPlugins::StbImageImporter)
 set(RES_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/res")
 set(RES_BINARY_DIR "$<TARGET_FILE_DIR:${PROJECT_NAME}>/res")
 
-
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/res
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/res
-        COMMENT "Copying resources to build dir..."
-)

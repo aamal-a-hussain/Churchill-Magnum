@@ -10,9 +10,9 @@
 #include <Magnum/Text/GlyphCacheGL.h>
 #include <Magnum/ImGuiIntegration/Context.hpp>
 
-#include "Entities/EntityManager.h"
+#include "Entities/EntityManager.hpp"
 #include "Components/GameComponents.hpp"
-#include "Components/Sprite.h"
+
 
 class GameEngine : public Magnum::Platform::Application {
 public:
@@ -75,7 +75,8 @@ private:
 
     EntityManager m_entityManager;
 
-    std::shared_ptr<Magnum::Shaders::FlatGL2D> m_shader;
+    std::shared_ptr<Magnum::Shaders::FlatGL2D> m_texturedShader;
+    std::shared_ptr<Magnum::Shaders::FlatGL2D> m_flatShader;
     Magnum::Timeline m_timeline;
     Magnum::ImGuiIntegration::Context m_imguiContext {Corrade::NoCreate};
     WindowProperties m_windowProperties;

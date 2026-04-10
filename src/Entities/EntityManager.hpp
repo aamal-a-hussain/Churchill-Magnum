@@ -35,10 +35,11 @@ public:
         std::shared_ptr<Entity> e_ptr(new Entity(entityType, m_totalEntities++));
         Corrade::Containers::arrayAppend(m_toAdd, e_ptr);
         return e_ptr;
+
     }
 
     [[nodiscard]] bool playerExists() const {
-        return m_entitiesById.contains(Player);
+        return m_entitiesById.contains(EntityType::Player);
     }
 
     void update()

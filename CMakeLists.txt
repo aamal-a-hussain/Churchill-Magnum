@@ -8,11 +8,13 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/extern/" ${CMAKE_MODULE_PATH})
 add_subdirectory(extern/corrade EXCLUDE_FROM_ALL)
 
 set(MAGNUM_WITH_SDL2APPLICATION ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_ANYIMAGEIMPORTER ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum EXCLUDE_FROM_ALL)
 
 set(IMGUI_DIR ${PROJECT_SOURCE_DIR}/extern/imgui)
 set(MAGNUM_WITH_IMGUIINTEGRATION ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum-integration EXCLUDE_FROM_ALL)
-set(MAGNUM_WITH_STBTRUETYPEFONT ON CACHE BOOL "" FORCE)
+
+set(MAGNUM_WITH_STBIMAGEIMPORTER ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum-plugins)
 add_subdirectory(src)

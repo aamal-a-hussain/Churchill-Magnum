@@ -12,7 +12,8 @@ GameEngine::GameEngine(const Arguments &arguments) : Magnum::Platform::Applicati
     .setWindowFlags(Configuration::WindowFlag::FullscreenDesktop)
     ),
     m_entityManager(maxNumEnemies + 1) {
-    m_shader = std::make_shared<Magnum::Shaders::FlatGL2D>();
+    m_texturedShader = std::make_shared<Magnum::Shaders::FlatGL2D>(Magnum::Shaders::FlatGL2D::Flag::Textured);
+    m_flatShader = std::make_shared<Magnum::Shaders::FlatGL2D>();
 
     spawnPlayer();
 
@@ -41,7 +42,9 @@ inline Magnum::Vector2 GameEngine::windowDimensions()
 
 void GameEngine::drawEvent() {
     Magnum::GL::defaultFramebuffer.clear(Magnum::GL::FramebufferClear::Color);
-    if (m_renderingActive) m_entityManager.DrawEntities(windowDimensions());
+    if (m_renderingActive) {
+        m_entityManager.DrawEntities(windowDimensions());
+    }
     sImGui();
     swapBuffers();
 }
@@ -54,7 +57,7 @@ void GameEngine::tickEvent() {
         if (m_movementActive) sMovement();
         if (m_spawnActive) sSpawnEnemy();
 
-        for (const auto& e : m_entityManager.getEntityById(Enemy))
+        for (const auto& e : m_entityManager.getEntityById(EntityType::Enemy))
         {
             if (e->Has<LifeSpan>())
                 if (const auto& l = e->Get<LifeSpan>(); cTime - l.startTime >= l.lifespan) {
