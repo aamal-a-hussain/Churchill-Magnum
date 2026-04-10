@@ -1,11 +1,11 @@
 Gui elements
 - Enable systems
-    [] Movement
+    [x] Movement
     [] Bullet Lifespan
     [] Collisions
-    [] Spawning
-        Manual spawn
-    [] Rendering
+    [x] Spawning
+        [x] Manual spawn
+    [x] Rendering
     [x] Pause
     [x] Exit
 
