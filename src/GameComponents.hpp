@@ -51,13 +51,14 @@ protected:
     std::shared_ptr<Magnum::Shaders::FlatGL2D> m_shader;
 
 public:
+    int numSegments {};
     Sprite() : Component() {};
 
     explicit Sprite(
         const std::shared_ptr<Magnum::Shaders::FlatGL2D> &shader,
         const Magnum::Color3& meshColor,
         const int segments = 64
-    ) : Component(true), m_meshColor(meshColor), m_shader(shader)
+    ) : Component(true), m_meshColor(meshColor), m_shader(shader), numSegments(segments)
     {
         m_mesh = std::make_shared<Magnum::GL::Mesh>(
             Magnum::MeshTools::compile(

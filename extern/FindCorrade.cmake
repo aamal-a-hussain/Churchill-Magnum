@@ -179,16 +179,16 @@
 #
 # Compile data resources into application binary::
 #
-#  corrade_add_resource(<name> <resources.conf>)
+#  corrade_add_resource(<name> <player_resources.conf>)
 #
 # Depends on ``Corrade::rc``, which is part of Corrade utilities. This command
 # generates resource data using given configuration file in current build
 # directory. Argument name is name under which the resources can be explicitly
 # loaded. Variable ``<name>`` contains compiled resource filename, which is
 # then used for compiling library / executable. On CMake >= 3.1 the
-# `resources.conf` file can contain UTF-8-encoded filenames. Example usage::
+# `player_resources.conf` file can contain UTF-8-encoded filenames. Example usage::
 #
-#  corrade_add_resource(app_resources resources.conf)
+#  corrade_add_resource(app_resources player_resources.conf)
 #  add_executable(app source1 source2 ... ${app_resources})
 #
 # .. command:: corrade_add_plugin

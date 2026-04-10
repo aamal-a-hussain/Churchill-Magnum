@@ -16,5 +16,6 @@ set(MAGNUM_WITH_IMGUIINTEGRATION ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum-integration EXCLUDE_FROM_ALL)
 
 set(MAGNUM_WITH_STBIMAGEIMPORTER ON CACHE BOOL "" FORCE)
+set(MAGNUM_WITH_STBTRUETYPEFONT ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum-plugins)
 add_subdirectory(src)

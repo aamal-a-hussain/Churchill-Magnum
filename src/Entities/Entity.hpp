@@ -5,7 +5,7 @@
 #ifndef CHURCHILLMAGNUM_ENTITY_H
 #define CHURCHILLMAGNUM_ENTITY_H
 
-#include "../Components/GameComponents.hpp"
+#include "../GameComponents.hpp"
 #include "Magnum/Math/Matrix3.h"
 #include "Magnum/Vk/Shader.h"
 
@@ -14,13 +14,11 @@ enum class EntityType
     Player,
     Enemy,
     Bullet,
+    Small,
 };
 
 template <typename T>
 concept IsComponent = std::derived_from<T, Component>;
-
-template <typename T>
-concept IsSprite = std::derived_from<T, Sprite>;
 
 class Entity
 {
@@ -30,6 +28,7 @@ protected:
     size_t m_id;
     EntityType m_entityType;
     std::shared_ptr<Sprite> m_sprite;
+    float m_alpha = 1.0f;
 
     Entity(const EntityType entityType, const size_t id) : m_alive(true), m_id(id),
                                                            m_entityType(entityType)
@@ -59,13 +58,13 @@ public:
         c.exists = true;
     }
 
-    template <IsSprite T, typename... Args>
+    template <typename... Args>
     void AddSprite(Args&&... mArgs)
     {
-        m_sprite = std::make_shared<T>(std::forward<Args>(mArgs)...);
+        m_sprite = std::make_shared<Sprite>(std::forward<Args>(mArgs)...);
     }
 
-    virtual std::shared_ptr<Sprite> GetSprite()
+    std::shared_ptr<Sprite> GetSprite()
     {
         return m_sprite;
     }
@@ -74,6 +73,11 @@ public:
     [[nodiscard]] bool IsAlive() const { return m_alive; }
     [[nodiscard]] EntityType GetEntityType() const { return m_entityType; }
     void Destroy() { m_alive = false; }
+    void SetAlpha(const float alpha)
+    {
+        m_alpha = alpha;
+
+    }
 
     virtual void draw(const Magnum::Vector2& windowDimensions)
     {
@@ -105,9 +109,8 @@ public:
             return;
         }
 
-        shader->setColor(sprite->GetColor());
-        shader
-            ->setTransformationProjectionMatrix(Magnum::Matrix3::projection(windowDimensions)
+        shader->setColor(Magnum::Color4 {sprite->GetColor(), m_alpha})
+                .setTransformationProjectionMatrix(Magnum::Matrix3::projection(windowDimensions)
                 * Magnum::Matrix3::translation(transform.position)
                 * Magnum::Matrix3::scaling(transform.scale)
             )

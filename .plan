@@ -1,8 +1,8 @@
 Gui elements
 - Enable systems
     [x] Movement
-    [] Bullet Lifespan
-    [] Collisions
+    [x] Lifespan
+    [x] Collisions
     [x] Spawning
         [x] Manual spawn
     [x] Rendering
@@ -13,11 +13,14 @@ Gui elements
 
 - FPS monitor
 
+Custom sprite & shader for player
+
 Gameplay elements:
-1. Bullets & shooting
-2. Score
-3. Health
-4. Enemies move towards player
-5. Enemies attack player
-6. Collision system with bullets
-7. Small + lifetime
+[x] Bullets & shooting
+[x] Collision system with bullets
+[x] Score
+[] Enemies move towards player
+[] Enemies attack player
+[x] Health
+[x] Small + lifetime
+[x] Fade with lifetime

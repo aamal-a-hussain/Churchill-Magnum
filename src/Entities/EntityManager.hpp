@@ -11,9 +11,6 @@
 #include "Corrade/Containers/GrowableArray.h"
 #include <Corrade/Containers/Array.h>
 
-#include "EnemyFab.hpp"
-
-
 using EntityVector= Corrade::Containers::Array<std::shared_ptr<Entity>>;
 using EntityMap = std::map<EntityType, EntityVector>;
 
@@ -68,9 +65,14 @@ public:
         Corrade::Containers::arrayClear(m_toAdd);
     }
 
-    EntityVector& getEntityById(const EntityType entityType)
+    EntityVector& GetEntityById(const EntityType entityType)
     {
         return m_entitiesById[entityType];
+    }
+
+    EntityVector& GetEntities()
+    {
+        return m_entities;
     }
 
     void DrawEntities(const Magnum::Vector2& windowDimensions) {

@@ -6,11 +6,13 @@
 #define CHURCHILLMAGNUM_ENEMYFAB_H
 #include <Magnum/Math/Color.h>
 
-enum EnemyType
+struct BulletFab
 {
-    Runner,
-    Heavy,
-    All
+    float scale = 0.025f;
+    float speed = 5.0f;
+    float lifetime = 1.0f;
+    float shotInterval = .5f;
+    Magnum::Color3 color = Magnum::Color3::red();
 };
 
 struct EnemyFab
@@ -26,7 +28,7 @@ struct EnemyFab
     {
         return EnemyFab(
             1.0f,
-            0.05f,
+            0.075f,
             10,
             Magnum::Color3::cyan()
         );
