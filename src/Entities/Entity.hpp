@@ -1,10 +1,15 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
-#include "../Components/Sprite.hpp"
-#include "../Components/Transform.hpp"
-#include "../EngineCore/SpriteResource.hpp"
+#include "Components/Sprite.hpp"
+#include "Components/Transform.hpp"
+#include "EngineCore/SpriteResource.hpp"
+
+#include "Corrade/Containers/Optional.h"
+#include "Corrade/Containers/StaticArray.h"
+#include "EngineCore/Animation/AnimationController.hpp"
 #include "Magnum/Magnum.h"
+
 #include <format>
 
 class Entity {
@@ -51,9 +56,26 @@ public:
     m_transform.position = position;
   }
 
+  void setAnimation(Corrade::Containers::StaticArray<4, Transform> animation) {
+    CORRADE_ASSERT(!m_animationController,
+                   "Animation Controller has already been set and we have not "
+                   "yet handled overwriting animations", );
+    m_animationController = TransformAnimationController<4>{animation, 1};
+  }
+
+  void update() {
+    if (m_animationController) {
+      (*m_animationController).tick();
+      m_transform = (*m_animationController).getCurrentTransform();
+    }
+  }
+
 private:
   Transform m_transform;
   const Sprite m_sprite;
+
+  Corrade::Containers::Optional<TransformAnimationController<4>>
+      m_animationController;
 
   // Ensure DrawData is last!
   DrawData m_draw_data;

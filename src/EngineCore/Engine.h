@@ -1,4 +1,4 @@
-#include "../Entities/EntityManager.hpp"
+#include "Entities/EntityManager.hpp"
 #include "Renderer.hpp"
 
 #include "Magnum/Magnum.h"
@@ -23,6 +23,7 @@ private:
   void tickEvent() override;
 
   void drawPlayer();
+  void updatePlayer();
   void setupPlayer(PlayerConfig &config);
 
   Magnum::Vector2 getWindowSizeFloat() const;

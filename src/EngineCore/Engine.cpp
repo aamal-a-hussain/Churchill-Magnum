@@ -1,22 +1,26 @@
 #include "Engine.h"
 #include "Corrade/Containers/ArrayView.h"
+#include "Corrade/Containers/StaticArray.h"
 #include "Magnum/GL/AbstractFramebuffer.h"
 #include "Magnum/GL/DefaultFramebuffer.h"
 #include "Magnum/Magnum.h"
 
+// @TODO: Remove the hardcoded values;
 GameEngine::GameEngine(const Arguments &arguments)
     : Magnum::Platform::Application(
           arguments,
           Configuration{}.setTitle("Mega Mario").setSize({800, 800})),
       m_renderer(), m_entityManager() {
   m_windowSize_f = getWindowSizeFloat();
-  PlayerConfig config{{0, 0}, {10, 10}, {}};
+
+  PlayerConfig config{{400, 400}, {150, 150}, {}};
   setupPlayer(config);
 }
 
 void GameEngine::drawEvent() {
   namespace GL = Magnum::GL;
   GL::defaultFramebuffer.clear(GL::FramebufferClear::Color);
+  updatePlayer();
   drawPlayer();
   swapBuffers();
 }
@@ -24,9 +28,16 @@ void GameEngine::drawEvent() {
 void GameEngine::setupPlayer(PlayerConfig &config) {
   auto &player = m_entityManager.getPlayer();
   auto playerScale = getNormalizedDeviceScale(config.scale);
-  Corrade::Utility::Debug{} << playerScale << m_windowSize_f;
   player.setScale(playerScale);
-  player.setPosition({-1.f, -1.f});
+  player.setPosition(getNormalizedDeviceCoordinates(config.initialPosition));
+
+  auto animation = Corrade::Containers::StaticArray<4, Transform>{
+      Transform({0.0f, 0.0f}, {0.25f, 0.25f}, 0.0f),
+      Transform({0.0f, 0.0f}, {0.5f, 0.5f}, 0.0f),
+      Transform({0.0f, 0.0f}, {0.75f, 0.75f}, 0.0f),
+      Transform({0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f),
+  };
+  player.setAnimation(animation);
 }
 
 Magnum::Vector2 GameEngine::getNormalizedDeviceCoordinates(
@@ -59,9 +70,13 @@ GameEngine::getNormalizedDeviceScale(const Magnum::Vector2i scale) const {
   return {scale_f.x() / m_windowSize_f.x(), scale_f.y() / m_windowSize_f.y()};
 }
 
+void GameEngine::updatePlayer() {
+  auto &player = m_entityManager.getPlayer();
+  player.update();
+}
 void GameEngine::drawPlayer() {
-  auto &entity = m_entityManager.getPlayer();
-  m_renderer.drawEntity(entity.getDrawData());
+  auto &player = m_entityManager.getPlayer();
+  m_renderer.drawEntity(player.getDrawData());
 }
 
 void GameEngine::tickEvent() { redraw(); }

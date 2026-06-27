@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ENGINECORE_RENDERER_HPP_
 #define INCLUDE_ENGINECORE_RENDERER_HPP_
 
-#include "../Entities/Entity.hpp"
+#include "Entities/Entity.hpp"
 #include "Magnum/Magnum.h"
 #include "Magnum/Shaders/FlatGL.h"
 #include "SpriteResource.hpp"
