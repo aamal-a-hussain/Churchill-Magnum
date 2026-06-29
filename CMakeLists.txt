@@ -12,4 +12,7 @@ add_subdirectory(extern/corrade EXCLUDE_FROM_ALL)
 set(MAGNUM_WITH_SDL2APPLICATION ON CACHE BOOL "" FORCE)
 add_subdirectory(extern/magnum EXCLUDE_FROM_ALL)
 
+set(MAGNUM_WITH_STBIMAGEIMPORTER ON CACHE BOOL "" FORCE)
+add_subdirectory(extern/magnum-plugins)
+
 add_subdirectory(src)
