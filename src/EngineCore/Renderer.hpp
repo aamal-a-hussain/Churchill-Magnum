@@ -4,7 +4,8 @@
 #include "Entities/Entity.hpp"
 #include "Magnum/Magnum.h"
 #include "Magnum/Shaders/FlatGL.h"
-#include "SpriteResource.hpp"
+#include "Resources/SpriteResource.hpp"
+#include "Resources/TextureLoader.hpp"
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Mesh.h>
 #include <Magnum/GL/Renderer.h>
@@ -18,21 +19,30 @@ class Renderer {
   SpriteResource m_spriteResource;
 
 public:
-  Renderer() : m_shader{Magnum::Shaders::FlatGL2D::Configuration{}} {}
+  Renderer()
+      : m_shader{Magnum::Shaders::FlatGL2D::Configuration{}.setFlags(
+            Magnum::Shaders::FlatGL2D::Flag::Textured |
+            Magnum::Shaders::FlatGL2D::Flag::TextureTransformation)} {}
 
   void drawEntity(const Entity::DrawData &entity) {
     // @NOTE: Not thinking about screen resolutions now. Will deal
     // with that later
-    auto &mesh = m_spriteResource.get(entity.sprite.type);
-    auto pos = entity.transform.position;
-    auto scale = entity.transform.scale;
-    auto rot = entity.transform.rotation;
+    auto &mesh = m_spriteResource.getMesh();
+    auto &spriteData = m_spriteResource.getData(entity.sprite.type);
+    auto &texture = m_spriteResource.textureLoader.get(spriteData.textureId);
+    Magnum::Matrix3 &textureMatrix = spriteData.textureMatrix;
+
+    const auto pos = entity.transform.position;
+    const auto scale = entity.transform.scale;
+    const auto rot = entity.transform.rotation;
 
     m_shader
         .setTransformationProjectionMatrix(
             Magnum::Matrix3::translation(pos) *
             Magnum::Matrix3::scaling(scale) *
             Magnum::Matrix3::rotation(Magnum::Rad(rot)))
+        .bindTexture(texture)
+        .setTextureMatrix(textureMatrix)
         .draw(mesh);
   }
 };

@@ -3,19 +3,21 @@
 
 #include "Components/Sprite.hpp"
 #include "Components/Transform.hpp"
-#include "EngineCore/SpriteResource.hpp"
+#include "EngineCore/Resources/SpriteResource.hpp"
 
 #include "Corrade/Containers/Optional.h"
 #include "Corrade/Containers/StaticArray.h"
-#include "EngineCore/Animation/AnimationController.hpp"
+#include "EngineCore/Animation/SpriteAnimationController.hpp"
 #include "Magnum/Magnum.h"
 
+#include <cstddef>
 #include <format>
 
 class Entity {
 
 public:
-  Entity() : m_transform(), m_sprite(), m_draw_data(m_sprite, m_transform) {
+  static constexpr std::size_t N_ANIM_FRAMES = 8;
+  Entity() : m_transform(), m_sprite() {
 
     // @NOTE:
     // Making the assumption that the entity transform
@@ -25,18 +27,24 @@ public:
     m_transform.scale = {1.0f, 1.0f};
     m_transform.rotation = 0.0f;
   }
+  Entity(const SpriteResource::SpriteType spriteType)
+      : m_transform(), m_sprite(spriteType) {
+
+    m_transform.position = {0.0f, 0.0f};
+    m_transform.scale = {1.0f, 1.0f};
+    m_transform.rotation = 0.0f;
+  }
 
   Entity(const Transform &transform,
          const SpriteResource::SpriteType spriteType)
-      : m_transform(transform), m_sprite(spriteType),
-        m_draw_data(m_sprite, m_transform) {}
+      : m_transform(transform), m_sprite(spriteType) {}
 
   struct DrawData {
     Sprite sprite;
-    Transform &transform;
+    const Transform &transform;
   };
 
-  const DrawData &getDrawData() const { return m_draw_data; }
+  const DrawData getDrawData() const { return DrawData{m_sprite, m_transform}; }
 
   void setScale(const Magnum::Vector2 scale) {
     CORRADE_ASSERT(
@@ -56,29 +64,31 @@ public:
     m_transform.position = position;
   }
 
-  void setAnimation(Corrade::Containers::StaticArray<4, Transform> animation) {
+  void setAnimation(
+      Corrade::Containers::StaticArray<N_ANIM_FRAMES, Sprite> animation) {
     CORRADE_ASSERT(!m_animationController,
                    "Animation Controller has already been set and we have not "
                    "yet handled overwriting animations", );
-    m_animationController = TransformAnimationController<4>{animation, 1};
+    m_animationController =
+        Animation::SpriteAnimationController<N_ANIM_FRAMES>{animation, 30};
   }
 
   void update() {
     if (m_animationController) {
       (*m_animationController).tick();
-      m_transform = (*m_animationController).getCurrentTransform();
+      m_sprite = (*m_animationController).getCurrentFrame();
     }
+    // JUST FOR FUN
+    m_transform.position += {0.005f, 0.0f};
   }
 
 private:
   Transform m_transform;
-  const Sprite m_sprite;
+  Sprite m_sprite;
 
-  Corrade::Containers::Optional<TransformAnimationController<4>>
+  Corrade::Containers::Optional<
+      Animation::SpriteAnimationController<N_ANIM_FRAMES>>
       m_animationController;
-
-  // Ensure DrawData is last!
-  DrawData m_draw_data;
 };
 
 #endif // !ENTITY_HPP

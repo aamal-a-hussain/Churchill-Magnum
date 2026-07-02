@@ -1,8 +1,10 @@
 #include "Engine.h"
-#include "Corrade/Containers/ArrayView.h"
+#include "Components/Sprite.hpp"
 #include "Corrade/Containers/StaticArray.h"
+#include "EngineCore/Resources/SpriteResource.hpp"
 #include "Magnum/GL/AbstractFramebuffer.h"
 #include "Magnum/GL/DefaultFramebuffer.h"
+#include "Magnum/GL/Renderer.h"
 #include "Magnum/Magnum.h"
 
 // @TODO: Remove the hardcoded values;
@@ -15,12 +17,20 @@ GameEngine::GameEngine(const Arguments &arguments)
 
   PlayerConfig config{{400, 400}, {150, 150}, {}};
   setupPlayer(config);
+
+  namespace GL = Magnum::GL;
+  GL::Renderer::enable(GL::Renderer::Feature::Blending);
+  GL::Renderer::setBlendEquation(GL::Renderer::BlendEquation::Add,
+                                 GL::Renderer::BlendEquation::Add);
+  GL::Renderer::setBlendFunction(
+      GL::Renderer::BlendFunction::SourceAlpha,
+      GL::Renderer::BlendFunction::OneMinusSourceAlpha);
 }
 
 void GameEngine::drawEvent() {
   namespace GL = Magnum::GL;
   GL::defaultFramebuffer.clear(GL::FramebufferClear::Color);
-  updatePlayer();
+
   drawPlayer();
   swapBuffers();
 }
@@ -31,12 +41,17 @@ void GameEngine::setupPlayer(PlayerConfig &config) {
   player.setScale(playerScale);
   player.setPosition(getNormalizedDeviceCoordinates(config.initialPosition));
 
-  auto animation = Corrade::Containers::StaticArray<4, Transform>{
-      Transform({0.0f, 0.0f}, {0.25f, 0.25f}, 0.0f),
-      Transform({0.0f, 0.0f}, {0.5f, 0.5f}, 0.0f),
-      Transform({0.0f, 0.0f}, {0.75f, 0.75f}, 0.0f),
-      Transform({0.0f, 0.0f}, {1.0f, 1.0f}, 0.0f),
-  };
+  auto animation =
+      Corrade::Containers::StaticArray<Entity::N_ANIM_FRAMES, Sprite>{
+          Sprite{SpriteResource::SpriteType::WALK_1},
+          Sprite{SpriteResource::SpriteType::WALK_2},
+          Sprite{SpriteResource::SpriteType::WALK_3},
+          Sprite{SpriteResource::SpriteType::WALK_4},
+          Sprite{SpriteResource::SpriteType::WALK_5},
+          Sprite{SpriteResource::SpriteType::WALK_6},
+          Sprite{SpriteResource::SpriteType::WALK_7},
+          Sprite{SpriteResource::SpriteType::WALK_8},
+      };
   player.setAnimation(animation);
 }
 
@@ -79,6 +94,9 @@ void GameEngine::drawPlayer() {
   m_renderer.drawEntity(player.getDrawData());
 }
 
-void GameEngine::tickEvent() { redraw(); }
+void GameEngine::tickEvent() {
+  updatePlayer();
+  redraw();
+}
 
 MAGNUM_APPLICATION_MAIN(GameEngine);

@@ -20,5 +20,6 @@ target_link_libraries(
         Magnum::Magnum
         Magnum::Shaders
         Magnum::Primitives
+        # MagnumPlugins::StbImageImporter
 )
-add_dependencies(${PROJECT_NAME}  MagnumPlugins::StbImageImporter)
+add_dependencies(${PROJECT_NAME} MagnumPlugins::StbImageImporter)

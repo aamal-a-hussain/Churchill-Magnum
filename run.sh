@@ -19,7 +19,7 @@ pushd $repo_root 1> /dev/null
             fi
 
             cd "$build_dir"
-            cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
+            cmake ..
             cmake --build . --parallel $(nproc)
             ;;
         -r|--run)
