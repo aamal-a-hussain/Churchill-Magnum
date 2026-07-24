@@ -53,6 +53,7 @@ void GameEngine::setupPlayer(PlayerConfig &config) {
           Sprite{SpriteResource::SpriteType::WALK_8},
       };
   player.setAnimation(animation);
+  player.subscribeToInput(m_inputSystem);
 }
 
 Magnum::Vector2 GameEngine::getNormalizedDeviceCoordinates(
@@ -97,6 +98,12 @@ void GameEngine::drawPlayer() {
 void GameEngine::tickEvent() {
   updatePlayer();
   redraw();
+}
+
+void GameEngine::keyPressEvent(KeyEvent &event) {
+  if (event.key() == Key::Esc)
+    exit();
+  m_inputSystem.handleKeyDown(event);
 }
 
 MAGNUM_APPLICATION_MAIN(GameEngine);

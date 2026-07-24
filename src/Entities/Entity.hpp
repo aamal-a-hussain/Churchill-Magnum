@@ -3,15 +3,16 @@
 
 #include "Components/Sprite.hpp"
 #include "Components/Transform.hpp"
+#include "EngineCore/Input/InputSystem.h"
 #include "EngineCore/Resources/SpriteResource.hpp"
 
 #include "Corrade/Containers/Optional.h"
 #include "Corrade/Containers/StaticArray.h"
 #include "EngineCore/Animation/SpriteAnimationController.hpp"
 #include "Magnum/Magnum.h"
+#include "Utilities/EventManager.hpp"
 
 #include <cstddef>
-#include <format>
 
 class Entity {
 
@@ -64,6 +65,13 @@ public:
     m_transform.position = position;
   }
 
+  void subscribeToInput(InputSystem &inputSystem) {
+    m_game_input = inputSystem.OnMovePressed->subscribe(
+        [this](const EmptyEventArgs &args) {
+          this->m_transform.position += Magnum::Vector2{0.01f, 0.0f};
+        });
+  }
+
   void setAnimation(
       Corrade::Containers::StaticArray<N_ANIM_FRAMES, Sprite> animation) {
     CORRADE_ASSERT(!m_animationController,
@@ -78,14 +86,12 @@ public:
       (*m_animationController).tick();
       m_sprite = (*m_animationController).getCurrentFrame();
     }
-    // JUST FOR FUN
-    m_transform.position += {0.005f, 0.0f};
   }
 
 private:
   Transform m_transform;
   Sprite m_sprite;
-
+  EventManager<EmptyEventArgs>::SubscriptionPtr m_game_input;
   Corrade::Containers::Optional<
       Animation::SpriteAnimationController<N_ANIM_FRAMES>>
       m_animationController;

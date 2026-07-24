@@ -1,6 +1,7 @@
 
 
 #include "Entities/EntityManager.hpp"
+#include "Input/InputSystem.h"
 #include "Renderer.hpp"
 
 #include "Magnum/Magnum.h"
@@ -21,8 +22,10 @@ public:
   };
 
 private:
+  // METHODS
   void drawEvent() override;
   void tickEvent() override;
+  void keyPressEvent(KeyEvent &event) override;
 
   void drawPlayer();
   void updatePlayer();
@@ -33,7 +36,9 @@ private:
   getNormalizedDeviceCoordinates(const Magnum::Vector2i scale) const;
   Magnum::Vector2 getNormalizedDeviceScale(const Magnum::Vector2i scale) const;
 
+  // PROPERTIES
   Magnum::Vector2 m_windowSize_f;
   Renderer m_renderer;
   EntityManager m_entityManager;
+  InputSystem m_inputSystem;
 };

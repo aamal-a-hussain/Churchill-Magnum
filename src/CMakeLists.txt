@@ -5,8 +5,8 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 corrade_add_resource(Player_RESOURCES ../res/player_data.conf)
 
 add_executable(${PROJECT_NAME} 
-    EngineCore/Engine.h
     EngineCore/Engine.cpp 
+    EngineCore/Input/InputSystem.cpp 
     ${Player_RESOURCES}
 )
 

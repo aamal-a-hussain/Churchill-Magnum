@@ -102,6 +102,7 @@ public:
   TextureLoader textureLoader;
 
 private:
+  // @TODO: Change the sprite_data to a Corrade Static Array
   std::unordered_map<SpriteType, SpriteData> m_sprite_data;
   Magnum::GL::Mesh m_mesh;
 

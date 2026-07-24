@@ -29,15 +29,19 @@ public:
   TextureLoader() {
 
     Corrade::Utility::Resource rs{"player-data"};
+    // IDLE
     _importTexture(rs, "player_idle.png", TextureId::IDLE, {{768, 128}, 6});
     CORRADE_INTERNAL_ASSERT(m_texture_map.contains(TextureId::IDLE));
     CORRADE_INTERNAL_ASSERT(m_texture_info_map.contains(TextureId::IDLE));
+    // ATTACK
     _importTexture(rs, "player_attack.png", TextureId::ATTACK, {{640, 128}, 5});
     CORRADE_INTERNAL_ASSERT(m_texture_map.contains(TextureId::ATTACK));
     CORRADE_INTERNAL_ASSERT(m_texture_info_map.contains(TextureId::ATTACK));
+    // RUN
     _importTexture(rs, "player_run.png", TextureId::RUN, {{1024, 128}, 8});
     CORRADE_INTERNAL_ASSERT(m_texture_map.contains(TextureId::RUN));
     CORRADE_INTERNAL_ASSERT(m_texture_info_map.contains(TextureId::RUN));
+    // WALK
     _importTexture(rs, "player_walk.png", TextureId::WALK, {{1024, 128}, 8});
     CORRADE_INTERNAL_ASSERT(m_texture_map.contains(TextureId::WALK));
     CORRADE_INTERNAL_ASSERT(m_texture_info_map.contains(TextureId::WALK));
