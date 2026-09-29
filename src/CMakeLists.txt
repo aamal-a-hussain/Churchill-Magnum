@@ -5,13 +5,15 @@ set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 corrade_add_resource(Player_RESOURCES ../res/player_data.conf)
 
 add_executable(${PROJECT_NAME} 
-    EngineCore/Engine.cpp 
-    EngineCore/Input/InputSystem.cpp 
+    EngineCore/Main.cpp 
+    Input/InputSystem.cpp 
+    Resources/SpriteResource.cpp
+    Renderer.cpp
     ${Player_RESOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
 )
 target_link_libraries(
         ${PROJECT_NAME} PRIVATE

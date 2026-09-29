@@ -5,9 +5,9 @@
 #include "Magnum/Math/Vector2.h"
 
 struct Transform {
-  Magnum::Vector2 position;
-  Magnum::Vector2 scale;
-  float rotation;
+    Magnum::Vector2 position;
+    Magnum::Vector2 scale;
+    float rotation;
 };
 
 #endif // INCLUDE_COMPONENTS_TRANSFORM_HPP_
