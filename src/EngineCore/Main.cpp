@@ -5,6 +5,7 @@
 #include "Magnum/GL/DefaultFramebuffer.h"
 #include "Magnum/GL/Renderer.h"
 #include "Magnum/Magnum.h"
+#include "Utilities/Profiling.hpp"
 
 // @TODO: Remove the hardcoded values;
 GameEngine::GameEngine(const Arguments& arguments) :
@@ -14,6 +15,8 @@ GameEngine::GameEngine(const Arguments& arguments) :
             .setTitle(game::config::NAME)
             .setSize({game::config::WINDOW_WIDTH, game::config::WINDOW_HEIGHT})),
     renderer(), entityManager() {
+
+    PROFILE_FUNCTION
 
     // Needed for IMGUI to work.
     namespace GL = Magnum::GL;
